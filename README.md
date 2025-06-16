@@ -79,3 +79,9 @@ More information available in the `custom_components/getair_sensors/` source dir
 This repository is [HACS](https://hacs.xyz/) compatible. Make sure the following file exists in the root:
 - `hacs.json`
 
+---
+
+## ⚖️ Legal notice
+This is a personal project and isn't in any way affiliated with, sponsored or endorsed by Grünbeck.
+
+All product names, trademarks and registered trademarks in (the images in) this repository, are property of their respective owners. All images in this repository are used by the project for identification purposes only.
