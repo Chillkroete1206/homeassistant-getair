@@ -1,0 +1,9 @@
+{
+  "name": "Getair Sensors",
+  "domain": "getair_sensors",
+  "author": "Chillkroete1206",
+  "codeowners": ["@Chillkroete1206"],
+  "documentation": "https://github.com/dein-github-username/getair_sensors",
+  "requirements": ["requests>=2.32.3"],
+  "version": "0.0.1"
+}
