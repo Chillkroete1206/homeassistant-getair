@@ -82,6 +82,8 @@ class GetairZoneSensor(SensorEntity):
         device_class: str | None,
         enabled_by_default: bool,
     ):
+        self._device_id = device_id
+        self._zone_name = zone_name
         self._attr_name = f"{zone_name}_{attribute}"
         self._attr_unique_id = f"{device_id}_{zone_name}_{attribute}"
         self._value = value
@@ -92,6 +94,16 @@ class GetairZoneSensor(SensorEntity):
         )
         self._attr_entity_registry_enabled_default = enabled_by_default
         self._attr = attribute
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {(DOMAIN, self._device_id)},  # Nur device_id, ohne zone_name
+            "name": "Getair Lüftungsanlage",  # Einheitlicher Gerätename
+            "manufacturer": "Getair",
+            "model": "Lüftungsanlage",
+            # kein entry_type nötig
+        }
 
     @property
     def native_value(self):
