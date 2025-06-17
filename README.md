@@ -82,6 +82,6 @@ This repository is [HACS](https://hacs.xyz/) compatible. Make sure the following
 ---
 
 ## ⚖️ Legal notice
-This is a personal project and isn't in any way affiliated with, sponsored or endorsed by Grünbeck.
+This is a personal project and isn't in any way affiliated with, sponsored or endorsed by GetAir.
 
 All product names, trademarks and registered trademarks in (the images in) this repository, are property of their respective owners. All images in this repository are used by the project for identification purposes only.
