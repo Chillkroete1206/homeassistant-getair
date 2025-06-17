@@ -1,7 +1,7 @@
 {
   "domain": "getair_sensors",
   "name": "Getair Sensors",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "documentation": "https://github.com/Chillkroete1206/getair_sensors",
   "dependencies": [],
   "codeowners": ["@Chillkroete1206"],
