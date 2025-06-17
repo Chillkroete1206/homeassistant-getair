@@ -4,7 +4,7 @@
   "author": "Chillkroete1206",
   "codeowners": ["@Chillkroete1206"],
   "documentation": "https://github.com/Chillkroete1206/getair_sensors",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "render_readme": true,
   "country": "DE"
 }
