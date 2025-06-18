@@ -6,11 +6,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity import EntityCategory
-
-from functools import partial
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .api_wrapper import GetairAPIWrapper, Device
+from .coordinator import GetairDataUpdateCoordinator
 
 
 ALL_ATTRIBUTES = {
@@ -36,18 +35,15 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    wrapper: GetairAPIWrapper = hass.data[DOMAIN][entry.entry_id]
+    coordinator: GetairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     entities: list[SensorEntity] = []
 
-    for device in wrapper.devices:
+    for device in coordinator.api_wrapper.devices:
         base_id = device.device_id
 
         for zone_index in range(1, 4):
             zone_id = f"{zone_index}.{base_id}"
-
-            zone_data = await hass.async_add_executor_job(
-                partial(device._api._request_get, f"devices/{zone_id}/services/Zone")
-            )
+            zone_data = coordinator.data.get(zone_id)
 
             if not zone_data or "name" not in zone_data:
                 continue
@@ -55,13 +51,16 @@ async def async_setup_entry(
             zone_name = zone_data["name"].replace(" ", "_")
 
             for attr, meta in ALL_ATTRIBUTES.items():
-                value = zone_data.get(attr)
+                if attr not in zone_data:
+                    continue
+
                 entities.append(
                     GetairZoneSensor(
+                        coordinator=coordinator,
                         device_id=base_id,
+                        zone_id=zone_id,
                         zone_name=zone_name,
                         attribute=attr,
-                        value=value,
                         unit=meta["unit"],
                         device_class=meta["class"],
                         enabled_by_default=meta["default"],
@@ -71,42 +70,46 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class GetairZoneSensor(SensorEntity):
+class GetairZoneSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
+        coordinator: GetairDataUpdateCoordinator,
         device_id: str,
+        zone_id: str,
         zone_name: str,
         attribute: str,
-        value: float | str | bool | None,
         unit: str | None,
         device_class: str | None,
         enabled_by_default: bool,
     ):
+        super().__init__(coordinator)
         self._device_id = device_id
+        self._zone_id = zone_id
         self._zone_name = zone_name
+        self._attr = attribute
+
         self._attr_name = f"{zone_name}_{attribute}"
         self._attr_unique_id = f"{device_id}_{zone_name}_{attribute}"
-        self._value = value
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
         self._attr_entity_category = (
             EntityCategory.DIAGNOSTIC if not enabled_by_default else None
         )
         self._attr_entity_registry_enabled_default = enabled_by_default
-        self._attr = attribute
 
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self._device_id)},  # Nur device_id, ohne zone_name
-            "name": "Getair Lüftungsanlage",  # Einheitlicher Gerätename
+            "identifiers": {(DOMAIN, self._device_id)},
+            "name": "Getair Lüftungsanlage",
             "manufacturer": "Getair",
             "model": "Lüftungsanlage",
-            # kein entry_type nötig
         }
 
     @property
     def native_value(self):
-        if self._attr == "speed" and self._value is not None:
-            return round(self._value, 1)
-        return self._value
+        zone_data = self.coordinator.data.get(self._zone_id, {})
+        value = zone_data.get(self._attr)
+        if self._attr == "speed" and value is not None:
+            return round(value, 1)
+        return value
