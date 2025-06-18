@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from .const import AUTH_URL, API_URL
 from .api import API, Device
@@ -40,10 +41,12 @@ class GetairAPIWrapper:
             return False
 
     def update_all_zones(self) -> dict[str, dict]:
-        """Lädt aktuelle Zonen-Daten für alle Geräte."""
+        """Lädt aktuelle Zonen-Daten für alle Geräte und aktualisiert Device-Attribute."""
+
         result: dict[str, dict] = {}
 
         for device in self.devices:
+            # Zonen-Daten aktualisieren
             for zone_index in range(1, 4):
                 zone_id = f"{zone_index}.{device.device_id}"
                 try:
@@ -59,4 +62,27 @@ class GetairAPIWrapper:
                 except Exception as e:
                     _LOGGER.exception(f"Fehler beim Abrufen der Zone {zone_id}: {e}")
 
+            # Device-Attribute aktualisieren
+            try:
+                device_data = device._api._request_get(f"devices/{device.device_id}")
+                if device_data:
+                    self._update_device_attributes(device, device_data)
+                else:
+                    _LOGGER.debug(
+                        f"Keine Device-Daten für {device.device_id} erhalten."
+                    )
+            except Exception as e:
+                _LOGGER.exception(
+                    f"Fehler beim Abrufen der Device-Daten {device.device_id}: {e}"
+                )
+
         return result
+
+    def _update_device_attributes(self, device: Device, data: dict[str, Any]) -> None:
+        """Aktualisiert die Attribute eines Device-Objekts basierend auf neuen Daten."""
+
+        # Mapping Beispiel - hier musst du ggf. anpassen je nachdem, wie das Device-Objekt aufgebaut ist
+        # Wir aktualisieren nur Attribute, die auch existieren
+        for key, value in data.items():
+            if hasattr(device, key):
+                setattr(device, key, value)
